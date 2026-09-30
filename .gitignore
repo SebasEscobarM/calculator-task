@@ -1,0 +1,15 @@
+# Each module keeps its own ignore rules (backend/.gitignore,
+# frontend/.gitignore); this file covers what applies to the whole repo.
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+
+# Local environment files (commit .env.example instead)
+.env
+.env.*
+!.env.example

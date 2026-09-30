@@ -1,0 +1,9 @@
+# Store and check out text files with LF endings on every OS. On Windows,
+# CRLF endings break shell scripts inside Linux containers and make
+# `gofmt -l` report otherwise well-formatted files.
+* text=auto eol=lf
+
+*.ico   binary
+*.png   binary
+*.jpg   binary
+*.woff2 binary
