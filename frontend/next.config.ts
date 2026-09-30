@@ -7,6 +7,9 @@ import type { NextConfig } from "next";
 const backendUrl = process.env.BACKEND_URL ?? "http://localhost:8080";
 
 const nextConfig: NextConfig = {
+  // The Docker image runs the self-contained server that standalone output
+  // produces. Local builds keep the regular output, which `npm start` needs.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   // This app is its own workspace: don't infer the root from lockfiles found
   // in parent directories.
   turbopack: { root: __dirname },

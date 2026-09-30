@@ -84,3 +84,15 @@ operation keys, and the 'screen', where numbers and results go, at the top."
 **Result:** the calculator UI (display, keypad, physical keyboard support) with component
 tests. It was also checked in a real browser against the real backend at 320px, 375px and
 desktop widths, including with the backend stopped.
+
+## 7. Docker
+
+> Listo hagamos el docker para poder levantar todo de 1 solo comando en docker desktop para
+> que lo prueben al bajar el repo
+
+**Translation:** "OK, let's do the Docker setup so everything starts with a single command
+in Docker Desktop, and people can try it right after cloning the repo."
+
+**Result:** Dockerfiles for both services, a `compose.yaml` that starts the stack with
+`docker compose up --build`, and a CI job that builds the stack and runs a request through
+the frontend's proxy. The browser checks were repeated against the containers.

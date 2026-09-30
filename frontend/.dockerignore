@@ -1,0 +1,11 @@
+node_modules
+.next
+coverage
+next-env.d.ts
+*.tsbuildinfo
+npm-debug.log*
+# Local overrides such as .env.local must not leak into the image.
+.env*
+!.env.example
+Dockerfile
+.dockerignore

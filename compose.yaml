@@ -1,0 +1,28 @@
+# Runs the whole stack with one command:
+#
+#   docker compose up --build
+#
+# Then open http://localhost:3000. The API is also published on
+# http://localhost:8080. FRONTEND_PORT and BACKEND_PORT change the host ports.
+#
+# The project name matches the repository, rather than something generic like
+# "calculator", so it cannot adopt containers or images of other projects.
+name: calculator-task
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Inside the Compose network the backend is reachable by its service name.
+        BACKEND_URL: http://backend:8080
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy

@@ -78,3 +78,30 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker:
+    name: Docker (full stack)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build and start the stack
+        run: docker compose up --build --detach --wait --wait-timeout 180
+
+      - name: Smoke test through the frontend's proxy
+        run: |
+          curl --fail --silent --show-error --output /dev/null http://localhost:3000/
+          result="$(curl --silent --show-error -X POST http://localhost:3000/api/v1/add \
+            -H 'Content-Type: application/json' -d '{"a": 2, "b": 3}')"
+          echo "$result"
+          test "$result" = '{"result":5}'
+
+      - name: Show logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose down

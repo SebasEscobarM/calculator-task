@@ -12,27 +12,44 @@ A full-stack calculator: a Go REST microservice performs the arithmetic, and a N
 - Input validation and consistent JSON errors for edge cases such as division by zero,
   invalid data and overflow.
 
+## Quick start with Docker
+
+With Docker Desktop running, one command builds and starts everything:
+
+```bash
+git clone https://github.com/SebasEscobarM/calculator-task.git
+cd calculator-task
+docker compose up --build
+```
+
+Open `http://localhost:3000` once both services report healthy; the API is also published
+on `http://localhost:8080`. Stop with Ctrl+C, or with `docker compose down` if you started
+it with `--detach`.
+
+If those ports are taken, choose others:
+
+```bash
+FRONTEND_PORT=3100 BACKEND_PORT=8180 docker compose up --build
+```
+
+In PowerShell, set them first: `$env:FRONTEND_PORT=3100; $env:BACKEND_PORT=8180`.
+
 ## Repository layout
 
 | Path                                 | Contents                                         |
 | ------------------------------------ | ------------------------------------------------ |
 | [`backend/`](backend/)               | Go REST API (standard library only)              |
 | [`frontend/`](frontend/)             | Next.js + TypeScript frontend                    |
+| [`compose.yaml`](compose.yaml)       | Runs both with Docker Compose                    |
 | [`docs/api.md`](docs/api.md)         | API contract: endpoints, payloads, error codes   |
 | [`docs/PROMPTS.md`](docs/PROMPTS.md) | AI prompts used to build the project             |
 
 ## Prerequisites
 
-- Go 1.27+
-- Node.js 22+ and npm
-- Docker (optional)
+- For the quick start: Docker Desktop, or Docker Engine with Compose v2.
+- To run or test each part locally: Go 1.27+, and Node.js 22+ with npm.
 
-## Setup
-
-```bash
-git clone https://github.com/SebasEscobarM/calculator-task.git
-cd calculator-task
-```
+## Local setup
 
 The backend has no third-party dependencies, so Go is all it needs. The frontend needs its
 npm packages:
@@ -189,6 +206,12 @@ npm run typecheck
 - **Fits any phone.** Keys shrink with the screen height (never below the 44px touch
   target) and the result's font scales with the display's width, so twelve digits or an
   exponent never overflow, even at 320px wide.
+- **Small, unprivileged containers.** Both images use multi-stage builds. The backend is a
+  static Go binary on Alpine (about 23 MB); the frontend runs the standalone server that
+  Next.js generates, with only the dependencies it needs. Both run as non-root users and
+  define health checks, so Compose starts the frontend only once the API answers. The
+  backend's address is a build argument because Next.js fixes the proxy target at build
+  time.
 
 ## AI usage
 
