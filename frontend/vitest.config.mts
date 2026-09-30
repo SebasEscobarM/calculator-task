@@ -13,7 +13,8 @@ export default defineConfig({
       include: ["src/**/*.{ts,tsx}"],
       // The root layout only wires up <html> and the global styles.
       exclude: ["src/**/*.test.{ts,tsx}", "src/app/layout.tsx"],
-      reporter: ["text", "html", "lcov"],
+      // json-summary feeds the coverage table on each CI run's summary page.
+      reporter: ["text", "html", "lcov", "json-summary"],
     },
   },
 });

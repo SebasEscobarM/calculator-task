@@ -1,8 +1,9 @@
 # AI prompts
 
 This project was built with Claude Code (model: Claude Opus 5.5) running in VS Code.
-The prompts are listed in order and verbatim. They were written in Spanish, so each one
-is followed by an English translation and a short note on what it produced.
+These are the prompts that drove the technical work, in order and verbatim; short
+confirmations and final-validation messages are left out. They were written in Spanish, so
+each one is followed by an English translation and a short note on what it produced.
 
 ## 1. Planning
 
@@ -48,16 +49,7 @@ mapping, logging and panic recovery) with a test for every row of the contract. 
 checks passed, the server entrypoint `cmd/server` (timeouts, graceful shutdown), verified
 against the running binary.
 
-## 4. Race detector in Docker
-
-> Ya esta docker desktop abierto para q ejecutes
-
-**Translation:** "Docker Desktop is open now, so you can run it."
-
-**Result:** the CI steps (gofmt, vet, `go test -race` with coverage) run in a `golang:1.27`
-Linux container, plus a check that the real binary shuts down gracefully on SIGTERM.
-
-## 5. Frontend foundation
+## 4. Frontend foundation
 
 > Listo hagamos 4 y 5 todo hasta justo antes de la UI
 
@@ -67,7 +59,7 @@ Linux container, plus a check that the real binary shuts down gracefully on SIGT
 backend and a frontend CI job. Then the typed API client, the calculator reducer, display
 formatting, user-facing error messages and the `useCalculator` hook, all unit-tested.
 
-## 6. The calculator UI
+## 5. The calculator UI
 
 > Hagamos el tope de 12 digitos una calculadora, que la paleta de colores sea asi, donde
 > el color predominante es el Charcoal Blue, con botones de numeros de color Grey Olive y
@@ -85,7 +77,7 @@ operation keys, and the 'screen', where numbers and results go, at the top."
 tests. It was also checked in a real browser against the real backend at 320px, 375px and
 desktop widths, including with the backend stopped.
 
-## 7. Docker
+## 6. Docker
 
 > Listo hagamos el docker para poder levantar todo de 1 solo comando en docker desktop para
 > que lo prueben al bajar el repo

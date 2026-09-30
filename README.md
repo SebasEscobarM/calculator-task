@@ -3,14 +3,14 @@
 A full-stack calculator: a Go REST microservice performs the arithmetic, and a Next.js
 (React + TypeScript) frontend consumes it.
 
-> **Work in progress.** Sections marked _pending_ are filled in as each part lands.
-
 ## Features
 
 - Basic operations: addition, subtraction, multiplication, division.
 - Advanced operations: exponentiation, square root, percentage.
 - Input validation and consistent JSON errors for edge cases such as division by zero,
   invalid data and overflow.
+- A responsive calculator UI that works with the on-screen keypad or the physical keyboard.
+- One-command setup with Docker Compose, and CI that tests both layers and the full stack.
 
 ## Quick start with Docker
 
@@ -34,15 +34,30 @@ FRONTEND_PORT=3100 BACKEND_PORT=8180 docker compose up --build
 
 In PowerShell, set them first: `$env:FRONTEND_PORT=3100; $env:BACKEND_PORT=8180`.
 
-## Repository layout
+## Architecture
 
-| Path                                 | Contents                                         |
-| ------------------------------------ | ------------------------------------------------ |
-| [`backend/`](backend/)               | Go REST API (standard library only)              |
-| [`frontend/`](frontend/)             | Next.js + TypeScript frontend                    |
-| [`compose.yaml`](compose.yaml)       | Runs both with Docker Compose                    |
-| [`docs/api.md`](docs/api.md)         | API contract: endpoints, payloads, error codes   |
-| [`docs/PROMPTS.md`](docs/PROMPTS.md) | AI prompts used to build the project             |
+```mermaid
+flowchart LR
+    browser["Browser"] -->|"page and /api/v1/*"| ui["Next.js frontend :3000"]
+    ui -->|"rewrite of /api/* (proxy)"| api["Go REST API :8080"]
+```
+
+The browser only talks to Next.js, which forwards `/api/*` to the Go service. A key press
+becomes an action for the calculator's state machine; when that action needs a result, the
+state machine records a request, the `useCalculator` hook sends it to
+`/api/v1/{operation}`, and the answer comes back as another action.
+
+| Path                                  | Responsibility                                                                  |
+| ------------------------------------- | ------------------------------------------------------------------------------- |
+| `backend/internal/calculator`         | Pure arithmetic: the operations, their domain errors and the operation registry |
+| `backend/internal/httpapi`            | HTTP layer: routing, strict JSON decoding, error mapping, logging, recovery     |
+| `backend/cmd/server`                  | Entry point: configuration, timeouts, graceful shutdown                         |
+| `frontend/src/lib/api`                | Typed client for the API contract                                               |
+| `frontend/src/lib/calculator`         | State machine, display formatting, error messages, `useCalculator` hook         |
+| `frontend/src/components/calculator`  | UI: display, keypad and keyboard shortcuts                                      |
+| `compose.yaml`, `*/Dockerfile`        | Container setup                                                                 |
+| [`docs/api.md`](docs/api.md)          | API contract: endpoints, payloads, error codes                                  |
+| [`docs/PROMPTS.md`](docs/PROMPTS.md)  | AI prompts used to build the project                                            |
 
 ## Prerequisites
 
@@ -126,6 +141,17 @@ Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/v1/add -ContentTyp
 
 ## Testing and coverage
 
+| Area                              | Coverage                                                         |
+| --------------------------------- | ---------------------------------------------------------------- |
+| `backend/internal/calculator`     | 100% of statements                                               |
+| `backend/internal/httpapi`        | 100% of statements                                               |
+| `backend/cmd/server`              | 71.4% of statements: `main` itself runs only when the server does |
+| **Backend total**                 | **94.7% of statements**                                          |
+| **Frontend** (`frontend/src`)     | **100% of statements, branches, functions and lines**            |
+
+Every CI run publishes a coverage summary on its page and the full HTML reports as the
+`backend-coverage` and `frontend-coverage` artifacts.
+
 Backend:
 
 ```bash
@@ -151,6 +177,8 @@ npm run typecheck
 
 ## Design decisions and assumptions
 
+### Backend and API
+
 - **Go standard library only.** `net/http` routing, `encoding/json`, `log/slog` and
   `testing` cover everything the service needs, so there are no third-party dependencies
   to audit or update.
@@ -172,22 +200,29 @@ npm run typecheck
 - **Operational basics.** Structured request logs with `log/slog`, panic recovery that
   answers with a JSON 500, server timeouts against slow clients, and graceful shutdown on
   SIGINT/SIGTERM.
+
+### Math
+
 - **Percentage is `x / 100`**, like the `%` key of a pocket calculator: 150 × 20% = 30.
+- **Immediate execution.** `2 + 3 × 4 =` evaluates left to right (20), like a basic
+  calculator, rather than applying operator precedence.
 - **Floating point.** Results are IEEE-754 doubles, so `0.1 + 0.2` is
   `0.30000000000000004`. Rounding for display belongs to the frontend; exact decimal
   arithmetic is out of scope.
+- **Twelve digits.** Input and results show at most twelve significant digits, which also
+  hides floating-point noise; larger or smaller magnitudes switch to exponent notation.
+
+### Frontend
+
 - **Next.js proxies the API.** A rewrite forwards `/api/*` to the Go backend, so the browser
   talks to a single origin: no CORS to configure, and the backend's address stays out of the
   client bundle.
-- **A pocket calculator with immediate execution.** `2 + 3 × 4 =` evaluates left to right
-  (20), like a basic calculator. Every arithmetic operation runs on the backend; the
-  frontend only edits the number being typed (digits, decimal point, sign, backspace).
+- **All arithmetic runs on the backend.** The frontend only edits the number being typed
+  (digits, decimal point, sign, backspace).
 - **A pure state machine; effects as data.** All calculator logic lives in a reducer that
   never calls the API. When a key needs a result, the reducer stores a request with an id;
   a small hook sends it and dispatches the outcome. Every transition is therefore a pure,
   unit-tested function, and responses to cancelled requests (after AC) are ignored.
-- **Twelve digits.** Input and results show at most twelve significant digits, which also
-  hides floating-point noise; larger or smaller magnitudes switch to exponent notation.
 - **Errors in the user's words.** The frontend maps error codes to short messages such as
   "Cannot divide by zero"; the backend's `message` is meant for developers. While the
   backend is down, the proxy answers with a plain-text 500, which the client reports as
@@ -206,14 +241,34 @@ npm run typecheck
 - **Fits any phone.** Keys shrink with the screen height (never below the 44px touch
   target) and the result's font scales with the display's width, so twelve digits or an
   exponent never overflow, even at 320px wide.
+
+### Delivery
+
 - **Small, unprivileged containers.** Both images use multi-stage builds. The backend is a
   static Go binary on Alpine (about 23 MB); the frontend runs the standalone server that
   Next.js generates, with only the dependencies it needs. Both run as non-root users and
   define health checks, so Compose starts the frontend only once the API answers. The
   backend's address is a build argument because Next.js fixes the proxy target at build
   time.
+- **CI on every push.** Three jobs run in parallel: the backend (formatting, `go vet`,
+  tests with the race detector), the frontend (lint, type-check, tests, build) and the
+  full stack in Docker, which answers a real request through the frontend's proxy.
+
+## Trade-offs and future work
+
+- **Floating-point arithmetic.** `float64` keeps the service simple at the cost of binary
+  rounding that the frontend has to hide. Exact decimals, with `math/big.Rat` or a decimal
+  library, would make results exact.
+- **One request per operation.** Each `=` or chained operator is a round trip: instant
+  locally, but noticeable on a slow network. An endpoint that evaluates a whole expression,
+  with operator precedence, would need fewer round trips.
+- **Proxy target fixed at build time.** Pointing the frontend at another backend means
+  rebuilding its image; a Next.js route handler could read the address at runtime instead.
+- **Out of scope:** calculation history, locale-aware number formats such as decimal
+  commas, end-to-end browser tests in CI, authentication and rate limiting, and an OpenAPI
+  description of the contract.
 
 ## AI usage
 
-This project was built with Claude Code. Every prompt is logged in
-[docs/PROMPTS.md](docs/PROMPTS.md).
+This project was built with Claude Code. The prompts that drove the technical work are
+logged, in order, in [docs/PROMPTS.md](docs/PROMPTS.md).

@@ -42,8 +42,26 @@ jobs:
       - name: Test with race detector and coverage
         run: go test -race -coverprofile=coverage.out ./...
 
-      - name: Coverage summary
-        run: go tool cover -func=coverage.out
+      - name: Coverage report
+        run: |
+          go tool cover -html=coverage.out -o coverage.html
+          {
+            echo "### Backend coverage: $(go tool cover -func=coverage.out | awk '/^total:/ {print $3}')"
+            echo
+            echo "<details><summary>Coverage per function</summary>"
+            echo
+            echo '```'
+            go tool cover -func=coverage.out
+            echo '```'
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: backend-coverage
+          path: |
+            backend/coverage.out
+            backend/coverage.html
 
   frontend:
     name: Frontend (Next.js)
@@ -75,6 +93,21 @@ jobs:
 
       - name: Test with coverage
         run: npm run test:coverage
+
+      - name: Coverage report
+        run: |
+          node -e '
+            const { total } = require("./coverage/coverage-summary.json");
+            console.log("### Frontend coverage\n\n| Metric | Coverage |\n| --- | --- |");
+            for (const metric of ["statements", "branches", "functions", "lines"]) {
+              console.log(`| ${metric} | ${total[metric].pct}% |`);
+            }
+          ' >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
 
       - name: Build
         run: npm run build
