@@ -70,6 +70,9 @@ npm run dev
 Open `http://localhost:3000`. The browser only talks to Next.js, which proxies `/api/*` to
 the backend.
 
+Use the on-screen keypad or the physical keyboard: digits, `.`, `+ - * / ^ %`, Enter (or
+`=`) to calculate, Backspace to delete and Esc to clear.
+
 | Variable      | Default                 | Description                                                                                                                 |
 | ------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `BACKEND_URL` | `http://localhost:8080` | Backend that `/api/*` is proxied to. Read when `npm run dev` starts or when `npm run build` runs; `npm start` keeps the build's value. |
@@ -117,7 +120,9 @@ go tool cover -html=coverage.out          # browse it line by line
 
 CI also runs the tests with the race detector (`-race`), which needs cgo and a C compiler.
 
-Frontend (Vitest and Testing Library):
+Frontend (Vitest and Testing Library). The component tests drive the whole frontend (keys,
+state, HTTP client, display) against an in-memory backend that follows the API contract;
+only `fetch` is fake.
 
 ```bash
 cd frontend
@@ -170,6 +175,20 @@ npm run typecheck
   "Cannot divide by zero"; the backend's `message` is meant for developers. While the
   backend is down, the proxy answers with a plain-text 500, which the client reports as
   "Calculator service unavailable".
+- **Palette and contrast.** Charcoal Blue body, Grey Olive number keys, Lime Cream
+  operation keys, Silver control keys and a Platinum display. Every text and background
+  pair meets WCAG AA; the Platinum-on-Grey-Olive digits only reach 3:1, so key labels are
+  set as large text, where AA requires 3:1.
+- **Accessible by default.** Symbol keys have spoken names ("Divide", "Square root"), the
+  result is a live region that screen readers announce, and errors use `role="alert"`.
+  A mouse or touch click does not leave focus on a key, while keys pressed from the
+  keyboard keep it.
+- **One key map for both keyboards.** The on-screen keypad and the physical keyboard read
+  the same key definitions, so they cannot drift apart. Enter always means `=`, and Ctrl
+  and Cmd shortcuts are left to the browser.
+- **Fits any phone.** Keys shrink with the screen height (never below the 44px touch
+  target) and the result's font scales with the display's width, so twelve digits or an
+  exponent never overflow, even at 320px wide.
 
 ## AI usage
 

@@ -66,3 +66,21 @@ Linux container, plus a check that the real binary shuts down gracefully on SIGT
 **Result:** the Next.js app with Vitest and Testing Library, the `/api` proxy to the
 backend and a frontend CI job. Then the typed API client, the calculator reducer, display
 formatting, user-facing error messages and the `useCalculator` hook, all unit-tested.
+
+## 6. The calculator UI
+
+> Hagamos el tope de 12 digitos una calculadora, que la paleta de colores sea asi, donde
+> el color predominante es el Charcoal Blue, con botones de numeros de color Grey Olive y
+> botones de operacion Lime Cream, con arriba la "pantalla" o seccion donde van los numeros
+> y resultados
+>
+> _[attached: a screenshot of a colour palette with Grey Olive #848C8E, Charcoal Blue
+> #435058, Lime Cream #DCF763, Silver #BFB7B6 and Platinum #F1F2EE]_
+
+**Translation:** "Let's keep the 12-digit limit and build the calculator. Use this colour
+palette, with Charcoal Blue as the dominant colour, Grey Olive number keys and Lime Cream
+operation keys, and the 'screen', where numbers and results go, at the top."
+
+**Result:** the calculator UI (display, keypad, physical keyboard support) with component
+tests. It was also checked in a real browser against the real backend at 320px, 375px and
+desktop widths, including with the backend stopped.

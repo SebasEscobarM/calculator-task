@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+@theme {
+  /* Palette. Charcoal Blue dominates: it is the calculator's body, and the page
+     uses a deeper shade of it so the calculator stands out. */
+  --color-charcoal-blue: #435058;
+  --color-charcoal-deep: #2b353b;
+  --color-grey-olive: #848c8e;
+  --color-lime-cream: #dcf763;
+  --color-silver: #bfb7b6;
+  --color-platinum: #f1f2ee;
+
+  /* Fades in only if still shown after 300ms, so fast responses never flash it. */
+  --animate-appear-delayed: appear 150ms ease-out 300ms both;
+
+  @keyframes appear {
+    from {
+      opacity: 0;
+    }
+  }
+}
