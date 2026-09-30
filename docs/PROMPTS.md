@@ -33,3 +33,36 @@ phases 0 and 1."
 **Result:** repository scaffolding (git and editor settings, this log, the API contract,
 the README skeleton), the backend domain package `internal/calculator` with table-driven
 tests, and a CI workflow for the backend.
+
+## 3. HTTP layer and server
+
+> Vamos entonces a la fase 2, ya hice comit a la main, no push pero si commit, hagamos la
+> fase 2 y 3, solo pasando a la 3 si ejecuta bien la verificacion de la dase 2
+
+**Translation:** "Let's move on to phase 2, then. I already committed to main (committed,
+not pushed). Let's do phases 2 and 3, and only move on to phase 3 if phase 2's
+verification passes."
+
+**Result:** the HTTP layer `internal/httpapi` (routing, strict JSON decoding, error
+mapping, logging and panic recovery) with a test for every row of the contract. Once its
+checks passed, the server entrypoint `cmd/server` (timeouts, graceful shutdown), verified
+against the running binary.
+
+## 4. Race detector in Docker
+
+> Ya esta docker desktop abierto para q ejecutes
+
+**Translation:** "Docker Desktop is open now, so you can run it."
+
+**Result:** the CI steps (gofmt, vet, `go test -race` with coverage) run in a `golang:1.27`
+Linux container, plus a check that the real binary shuts down gracefully on SIGTERM.
+
+## 5. Frontend foundation
+
+> Listo hagamos 4 y 5 todo hasta justo antes de la UI
+
+**Translation:** "OK, let's do phases 4 and 5: everything up to just before the UI."
+
+**Result:** the Next.js app with Vitest and Testing Library, the `/api` proxy to the
+backend and a frontend CI job. Then the typed API client, the calculator reducer, display
+formatting, user-facing error messages and the `useCalculator` hook, all unit-tested.

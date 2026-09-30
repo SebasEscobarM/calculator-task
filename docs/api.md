@@ -51,11 +51,12 @@ Every error response has the same shape:
 
 | Status | Code                  | When                                                                                                                                                          |
 | ------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 400    | `INVALID_JSON`        | The body is empty or not valid JSON, an operand is not a number (`"a": "abc"`) or does not fit in a double (`1e400`), or there are unknown fields (including `b` on unary operations) |
+| 400    | `INVALID_JSON`        | The body is empty, not valid JSON or more than one JSON value; an operand is not a number (`"a": "abc"`) or does not fit in a double (`1e400`); or there are unknown fields (including `b` on unary operations) |
 | 400    | `MISSING_OPERAND`     | A required operand is missing or `null`                                                                                                                        |
 | 404    | `UNKNOWN_OPERATION`   | `{operation}` is not one of the operations above                                                                                                              |
-| 405    | `METHOD_NOT_ALLOWED`  | The method is not `POST`                                                                                                                                      |
-| 413    | `PAYLOAD_TOO_LARGE`   | The body exceeds the size limit                                                                                                                               |
+| 404    | `NOT_FOUND`           | The path does not exist                                                                                                                                       |
+| 405    | `METHOD_NOT_ALLOWED`  | Wrong method for the route: `/api/v1/{operation}` only takes `POST` and `/healthz` only `GET`. The `Allow` header lists the accepted methods                  |
+| 413    | `PAYLOAD_TOO_LARGE`   | The body exceeds 1 KiB (1024 bytes)                                                                                                                           |
 | 422    | `DIVISION_BY_ZERO`    | `divide` with `b = 0`                                                                                                                                         |
 | 422    | `INVALID_OPERAND`     | An operand is outside the operation's domain: `sqrt` of a negative number, `power` of zero to a negative exponent, or of a negative base to a fractional exponent |
 | 422    | `RESULT_OUT_OF_RANGE` | The result does not fit in a double, e.g. `power` with `{"a": 10, "b": 400}`                                                                                   |
